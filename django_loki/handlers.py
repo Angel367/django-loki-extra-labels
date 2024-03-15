@@ -29,6 +29,8 @@ class LokiHttpHandler(logging.Handler, object):
         """
         try:
             payload = self.formatter.format(record)
+            if payload is None:
+                return
             res = requests.post(self._post_address, json=payload, timeout=self._timeout)
             if res.status_code != 204:
                 sys.stderr.write('Loki occurs errors\n')
