@@ -54,10 +54,20 @@ class LokiFormatter(logging.Formatter, object):
             if s[-1:] != "\n":
                 s = s + "\n"
             s = s + self.formatStack(record.stack_info)
+
+        labels_str = f'{{source="{self.source}",job="{record.name}",host="{self.src_host}"}}'
+        labels = labels_str[:-1]
+        for k, v in record.__dict__.items():
+            if k == 'labels':
+                for key, value in record.__dict__['labels'].items():
+                    labels += f',{key}="{value}"'
+        labels += '}'
+        if record.name != 'django':
+            return None
         message = {
             'streams': [
                 {
-                    'labels': f'{{source="{self.source}",job="{record.name}",host="{self.src_host}"}}',
+                    'labels': labels,
                     'entries': [
                         {
                             'ts': self.format_timestamp(record.created).isoformat('T'),
@@ -67,5 +77,4 @@ class LokiFormatter(logging.Formatter, object):
                 }
             ]
         }
-
         return message
